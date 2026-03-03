@@ -6,45 +6,47 @@ Service Now is a popular platform to report problems. This automation tracks the
 ## Requirements
 
 - Apstra 4.2.0 or above
-- python 3 or above
 
 ## Usage
 
 1. Prepare the PowerPack
 - Apstra needs to have a Property Set that is used to manage the power pack. 
-- This can be auto-installed with Terraform or done manually:
-    
-    1.1 Manual Apstra Setup
-    - Set up the management property set in Apstra with appropriate values:
-    
-      | Field | Purpose | Value/Example |
-      |---|---|---|
-      | Name | PropertySet name | Ticket Manager |
-      | Input Type | Type of input required | Editor |
-      | Values | YAML of property values (including blueprints to manage) | (see below) |
+- Set up the management property set in Apstra with appropriate values:
 
-      ```yaml
-      blueprints: blueprint1, blueprint2
-      pause: false
-      ```
+  | Field | Purpose | Value/Example |
+  |---|---|---|
+  | Name | PropertySet name | Ticket Manager |
+  | Input Type | Type of input required | Editor |
+  | Values | YAML of property values (including blueprints to manage) | (see below) |
 
-    1.2 Terraform/Tofu Apstra Setup
-    - Fill out apstra_snow_setup.sh
-    - % source apstra_snow_setup.sh
-    - % terraform init&&terraform apply
-    - This will set up a Property Set called Ticket Manager with all the blueprints in the environment.
-    - Inspect the Property Set and ensure that only the blueprints you want to track are in the list
+  ```yaml
+  blueprint_ids: blueprint1, blueprint2
+  pause: false
+  ```
 
 2. Run PowerPack with Docker 
-- Copy setup.yaml.template to setup.yaml. Fill in the values as appropriate.
-- Export the APSTRA_PASS and SNOW_PASS passwords.
-- % docker build -t snowdemo:latest.
-  - At the end of this commend, you will get the id of the image that just got built use it in the next step.
-- `docker run -v $PWD/setup.yaml:/SnowApp/setup.yaml -e APSTRA_PASS=$APSTRA_PASS -e SNOW_PASS=$SNOW_PASS snowdemo:latest`
-
-3. DEV-ONLY: Run PowerPack from Commandline
-- `pip3 install -r ./requirements.txt`
-- copy setup.yaml.template to setup.yaml. Fill in the values as appropriate
-- Export the APSTRA_PASS and SNOW_PASS passwords
-- start the python script 
-   `python snow_tickets.py`
+- Create a setup.yaml, filling in the values as appropriate:
+  ```yaml
+  snow:
+    instance: devxxxxx                            #Service Now Instance
+    user:                                         #Service Now Username. Account needs to have permissions to create and edit tickets
+  wait_time_seconds: 20                           #Time between checks
+  tickets_property_set: tickets                   #Property Set for tickets
+  management_property_set: Ticket Manager         #Property Set to manage this automation
+                                                  #These are the
+                                                  #{
+                                                  #    'blueprint_ids': #Comma separated list of blueprint ids to be monitored
+                                                  #    'pause': #true or false. automation pauses if true
+                                                  #}
+  ```
+- Set the following shell variables:
+  | Variable | Example |
+  | -------- | ------- |
+  | APSTRA_URL | https://apstra.acme.net | 
+  | APSTRA_PORT | 4443 |
+  | APSTRA_USER | service_account_user |
+  | APSTRA_PASS | topSecretPW1# |
+  | SNOW_PASS | snowPass%^3 |
+  ```
+- Use the following command to run the container. The string `latest` can be replaced with the version you wish to use, like `v1.0.0`.
+- `docker run -v $PWD/setup.yaml:/SnowApp/setup.yaml -e APSTRA_URL=$APSTRA_URL -e APSTRA_PORT=$APSTRA_PORT -e APSTRA_USER=$APSTRA_USER -e APSTRA_PASS=$APSTRA_PASS -e SNOW_PASS=$SNOW_PASS snowdemo:latest`
