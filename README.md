@@ -12,18 +12,18 @@ Service Now is a popular platform to report problems. This automation tracks the
 
 1. Prepare the PowerPack
 - Apstra needs to have a Property Set that is used to manage the power pack. 
-- This can be auto-installed with Terraform or done manually
-    
-    1.2. Setting up Apstra with Terraform
-    - Fill out apstra_snow_setup.sh
-    - % source apstra_snow_setup.sh
-    - % terraform init&&terraform apply
-    - This will set up a Property Set called Ticket Manager with all the blueprints in the environment.
-    - Inspect the Property Set and ensure that only the blueprints you want to track are in the list
-
-    1.3 Setting up Apstra manually.
-    - Set up the management property set in Apstra with appropriate values
-    ![img.png](img.png)
+- Set up the management property set in Apstra with appropriate values
+- The Property Set should be called 'Ticket Manager'
+- The Property Set should have the following structure :
+  {
+      "pause" : false
+      "blueprint_ids" :[]            #String list of blueprint ids
+      "ignore_anomalies": [],        #List of Anomalies to Ignore
+      "ignore_device" : [],          #List of device hostnames to ignore
+      "include_only_anomalies" : [], #List of anomalies to include, all others will be ignored
+      "include_only_devices" : [],   #List of devices to include, all others will be ignored
+      "include_only_severity": [],   #List of severities to include, all others will be ignored
+    }
 
 2. Run PowerPack with Docker 
 - copy setup.yaml.template to setup.yaml. Fill in the values as appropriate
