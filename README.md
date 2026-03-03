@@ -47,6 +47,5 @@ Service Now is a popular platform to report problems. This automation tracks the
   | APSTRA_USER | service_account_user |
   | APSTRA_PASS | topSecretPW1# |
   | SNOW_PASS | snowPass%^3 |
-  ```
 - Use the following command to run the container. The string `latest` can be replaced with the version you wish to use, like `v1.0.0`.
 - `docker run -v $PWD/setup.yaml:/SnowApp/setup.yaml -e APSTRA_URL=$APSTRA_URL -e APSTRA_PORT=$APSTRA_PORT -e APSTRA_USER=$APSTRA_USER -e APSTRA_PASS=$APSTRA_PASS -e SNOW_PASS=$SNOW_PASS snowdemo:latest`
