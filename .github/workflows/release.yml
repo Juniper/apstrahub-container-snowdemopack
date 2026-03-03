@@ -1,0 +1,99 @@
+#  Copyright (c) Juniper Networks, Inc., 2025-2026.
+#  All rights reserved.
+#  SPDX-License-Identifier: Apache-2.0
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-sign-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=tag
+          labels: |
+            org.opencontainers.image.description=ServiceNow integration for Apstra anomaly ticket creation
+            org.opencontainers.image.title=ApstraHub Container - Snow Demo Pack
+
+      - name: Build and Push Container
+        id: build
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: Sign Container with Cosign (Key-Pair)
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          # Lowercase the image name for OCI compliance
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # COSIGN_PASSWORD defaults to empty if not set
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          if [ -z "${{ secrets.COSIGN_PRIVATE_KEY }}" ]; then
+            echo "ERROR: COSIGN_PRIVATE_KEY secret is not set"
+            echo "Please add the private key as a repository secret"
+            exit 1
+          fi
+          IMAGE_LOWER=$(echo "${IMAGE_REF}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="${IMAGE_LOWER}@${DIGEST}"
+          echo "Signing image: $IMAGE"
+          echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
+          cosign sign --key cosign.key --yes "$IMAGE"
+          rm -f cosign.key
+
+      - name: Create container-url.txt
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        run: |
+          # Lowercase and include digest for immutable reference
+          IMAGE_LOWER=$(echo "${IMAGE_REF}" | tr '[:upper:]' '[:lower:]')
+          echo "${IMAGE_LOWER}@${DIGEST}" > container-url.txt
+          echo "Container URL: $(cat container-url.txt)"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+        with:
+          files: |
+            container-url.txt
+            README.md
+          generate_release_notes: true
