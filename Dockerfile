@@ -1,6 +1,6 @@
 #  Copyright (c) Juniper Networks, Inc., 2025-2026.
 #  All rights reserved.
-#  SPDX-License-Identifier: Apache-2.0
+#  SPDX-License-Identifier: MIT
 
 FROM python:3.10.15
 
@@ -12,7 +12,7 @@ LABEL org.opencontainers.image.authors="ApstraHub Team <apstrahub@juniper.net>"
 LABEL org.opencontainers.image.documentation="https://github.com/Juniper/apstrahub-container-snowdemopack"
 LABEL org.opencontainers.image.source="https://github.com/Juniper/apstrahub-container-snowdemopack"
 LABEL org.opencontainers.image.vendor="Juniper Networks"
-LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.licenses="MIT"
 
 WORKDIR /SnowApp
 

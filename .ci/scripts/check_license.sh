@@ -2,7 +2,7 @@
 
 #  Copyright (c) Juniper Networks, Inc., 2025-2026.
 #  All rights reserved.
-#  SPDX-License-Identifier: Apache-2.0
+#  SPDX-License-Identifier: MIT
 
 set -euf -o pipefail
 
@@ -36,7 +36,7 @@ if [[ $ERRORS -gt 0 ]]; then
     echo ""
     echo "#  Copyright (c) Juniper Networks, Inc., 2025-2026."
     echo "#  All rights reserved."
-    echo "#  SPDX-License-Identifier: Apache-2.0"
+    echo "#  SPDX-License-Identifier: MIT"
     exit 1
 fi
 
