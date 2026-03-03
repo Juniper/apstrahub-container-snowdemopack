@@ -1,0 +1,6 @@
+# Ignore everything by default
+*
+
+# Allow only the files needed for the Docker build
+!requirements.txt
+!snow_tickets.py
